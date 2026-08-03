@@ -26,15 +26,18 @@ const elements = {
   fileMeta: byId<HTMLElement>("file-meta"),
   replaceButton: byId<HTMLButtonElement>("replace-btn"),
   resetButton: byId<HTMLButtonElement>("reset-btn"),
-  watermarkText: byId<HTMLInputElement>("watermark-text"),
+  textContent: byId<HTMLInputElement>("text-content"),
   dpiSelect: byId<HTMLSelectElement>("dpi-select"),
   formatSelect: byId<HTMLSelectElement>("format-select"),
   opacityRange: byId<HTMLInputElement>("opacity-range"),
   opacityValue: byId<HTMLOutputElement>("opacity-value"),
   angleSelect: byId<HTMLSelectElement>("angle-select"),
-  densitySelect: byId<HTMLSelectElement>("density-select"),
   fontSizeRange: byId<HTMLInputElement>("font-size-range"),
   fontSizeValue: byId<HTMLOutputElement>("font-size-value"),
+  positionXRange: byId<HTMLInputElement>("position-x-range"),
+  positionXValue: byId<HTMLOutputElement>("position-x-value"),
+  positionYRange: byId<HTMLInputElement>("position-y-range"),
+  positionYValue: byId<HTMLOutputElement>("position-y-value"),
   exportButton: byId<HTMLButtonElement>("export-btn"),
   exportLabel: byId<HTMLElement>("export-label"),
   exportHint: byId<HTMLElement>("export-hint"),
@@ -51,6 +54,7 @@ const elements = {
 let pdfDocument: PDFDocumentProxy | null = null;
 let selectedFile: File | null = null;
 let previewRevision = 0;
+let isPositioningText = false;
 let previewTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -70,42 +74,34 @@ const showToast = (message: string, isError = false) => {
 };
 
 const getSettings = () => ({
-  text: elements.watermarkText.value.trim(),
+  text: elements.textContent.value.trim(),
   dpi: Number(elements.dpiSelect.value),
   format: elements.formatSelect.value as "png" | "jpeg",
   opacity: Number(elements.opacityRange.value) / 100,
   angle: Number(elements.angleSelect.value),
-  density: Number(elements.densitySelect.value),
   fontSize: Number(elements.fontSizeRange.value),
+  positionX: Number(elements.positionXRange.value) / 100,
+  positionY: Number(elements.positionYRange.value) / 100,
 });
 
-const applyWatermark = (context: CanvasRenderingContext2D, width: number, height: number, dpi: number) => {
+const applyPlacedText = (context: CanvasRenderingContext2D, width: number, height: number, dpi: number) => {
   const settings = getSettings();
   if (!settings.text) return;
 
   const pixelRatio = dpi / 72;
   const fontSize = settings.fontSize * pixelRatio;
-  const horizontalGap = (310 * pixelRatio) / settings.density;
-  const verticalGap = (155 * pixelRatio) / settings.density;
-  const coverage = Math.hypot(width, height);
+  const positionX = width * settings.positionX;
+  const positionY = height * settings.positionY;
 
   context.save();
-  context.translate(width / 2, height / 2);
+  context.translate(positionX, positionY);
   context.rotate((settings.angle * Math.PI) / 180);
   context.globalAlpha = settings.opacity;
   context.fillStyle = "#405848";
   context.font = `650 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
-
-  let row = 0;
-  for (let y = -coverage; y <= coverage; y += verticalGap) {
-    const offset = row % 2 === 0 ? 0 : horizontalGap / 2;
-    for (let x = -coverage; x <= coverage; x += horizontalGap) {
-      context.fillText(settings.text, x + offset, y);
-    }
-    row += 1;
-  }
+  context.fillText(settings.text, 0, 0);
   context.restore();
 };
 
@@ -119,7 +115,7 @@ const renderPage = async (page: PDFPageProxy, dpi: number, canvas: HTMLCanvasEle
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvas, canvasContext: context, viewport, background: "#ffffff" }).promise;
-  applyWatermark(context, canvas.width, canvas.height, dpi);
+  applyPlacedText(context, canvas.width, canvas.height, dpi);
 };
 
 const renderPreview = async () => {
@@ -148,6 +144,8 @@ const schedulePreview = () => {
 const updateLabels = () => {
   elements.opacityValue.textContent = `${elements.opacityRange.value}%`;
   elements.fontSizeValue.textContent = `${elements.fontSizeRange.value} pt`;
+  elements.positionXValue.textContent = `${elements.positionXRange.value}%`;
+  elements.positionYValue.textContent = `${elements.positionYRange.value}%`;
 
   const { dpi, format } = getSettings();
   const isMultiplePages = (pdfDocument?.numPages ?? 1) > 1;
@@ -244,7 +242,7 @@ const exportImages = async () => {
       await renderPage(page, settings.dpi, canvas);
       const blob = await canvasToBlob(canvas, settings.format);
       const suffix = pdfDocument.numPages > 1 ? `-${String(pageNumber).padStart(2, "0")}` : "";
-      const fileName = `${baseName}-watermarked${suffix}.${settings.format === "jpeg" ? "jpg" : "png"}`;
+      const fileName = `${baseName}-annotated${suffix}.${settings.format === "jpeg" ? "jpg" : "png"}`;
 
       if (zip) {
         zip.file(fileName, blob);
@@ -257,7 +255,7 @@ const exportImages = async () => {
 
     if (zip) {
       const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
-      downloadBlob(zipBlob, `${baseName}-watermarked.zip`);
+      downloadBlob(zipBlob, `${baseName}-annotated.zip`);
     }
     showToast(t("complete"));
   } catch {
@@ -274,13 +272,26 @@ const exportImages = async () => {
 };
 
 const resetSettings = () => {
-  elements.watermarkText.value = t("watermarkPlaceholder");
+  elements.textContent.value = t("textPlaceholder");
   elements.dpiSelect.value = "300";
   elements.formatSelect.value = "png";
-  elements.opacityRange.value = "15";
-  elements.angleSelect.value = "-30";
-  elements.densitySelect.value = "1.35";
-  elements.fontSizeRange.value = "36";
+  elements.opacityRange.value = "100";
+  elements.angleSelect.value = "0";
+  elements.fontSizeRange.value = "24";
+  elements.positionXRange.value = "78";
+  elements.positionYRange.value = "12";
+  updateLabels();
+  schedulePreview();
+};
+
+const updatePositionFromPointer = (event: PointerEvent) => {
+  const bounds = elements.previewCanvas.getBoundingClientRect();
+  if (bounds.width === 0 || bounds.height === 0) return;
+
+  const positionX = Math.min(100, Math.max(0, ((event.clientX - bounds.left) / bounds.width) * 100));
+  const positionY = Math.min(100, Math.max(0, ((event.clientY - bounds.top) / bounds.height) * 100));
+  elements.positionXRange.value = String(Math.round(positionX));
+  elements.positionYRange.value = String(Math.round(positionY));
   updateLabels();
   schedulePreview();
 };
@@ -311,11 +322,12 @@ const bindEvents = () => {
   });
 
   const previewInputs = [
-    elements.watermarkText,
+    elements.textContent,
     elements.opacityRange,
     elements.angleSelect,
-    elements.densitySelect,
     elements.fontSizeRange,
+    elements.positionXRange,
+    elements.positionYRange,
   ];
   previewInputs.forEach((input) => input.addEventListener("input", () => {
     updateLabels();
@@ -325,6 +337,24 @@ const bindEvents = () => {
   elements.formatSelect.addEventListener("change", updateLabels);
   elements.resetButton.addEventListener("click", resetSettings);
   elements.exportButton.addEventListener("click", () => void exportImages());
+  elements.previewCanvas.addEventListener("pointerdown", (event) => {
+    isPositioningText = true;
+    elements.previewCanvas.classList.add("is-positioning");
+    elements.previewCanvas.setPointerCapture(event.pointerId);
+    updatePositionFromPointer(event);
+  });
+  elements.previewCanvas.addEventListener("pointermove", (event) => {
+    if (isPositioningText) updatePositionFromPointer(event);
+  });
+  elements.previewCanvas.addEventListener("pointerup", (event) => {
+    isPositioningText = false;
+    elements.previewCanvas.classList.remove("is-positioning");
+    elements.previewCanvas.releasePointerCapture(event.pointerId);
+  });
+  elements.previewCanvas.addEventListener("pointercancel", () => {
+    isPositioningText = false;
+    elements.previewCanvas.classList.remove("is-positioning");
+  });
   elements.localeButton.addEventListener("click", () => {
     setLocale(getLocale() === "zh" ? "en" : "zh");
     applyTranslations();

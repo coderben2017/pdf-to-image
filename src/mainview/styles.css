@@ -468,6 +468,18 @@ main {
   outline: none;
 }
 
+.compact-range {
+  align-self: end;
+}
+
+.position-row {
+  margin-top: 2px;
+  padding: 15px 13px 2px;
+  background: #f5f4ef;
+  border: 1px solid #e4e4de;
+  border-radius: 11px;
+}
+
 .range-field input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
@@ -602,6 +614,13 @@ main {
   max-height: 530px;
   background: #fff;
   box-shadow: 0 14px 35px rgba(33, 39, 34, 0.18);
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+#preview-canvas.is-positioning {
+  cursor: grabbing;
 }
 
 .preview-loader {
