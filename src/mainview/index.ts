@@ -50,7 +50,10 @@ const elements = {
   previewStatus: byId<HTMLElement>("preview-status"),
   previewStage: byId<HTMLElement>("preview-stage"),
   previewLoader: byId<HTMLElement>("preview-loader"),
+  previewPage: byId<HTMLElement>("preview-page"),
   previewCanvas: byId<HTMLCanvasElement>("preview-canvas"),
+  previewTextAnchor: byId<HTMLElement>("preview-text-anchor"),
+  previewText: byId<HTMLElement>("preview-text"),
   zoomOutButton: byId<HTMLButtonElement>("zoom-out-btn"),
   zoomInButton: byId<HTMLButtonElement>("zoom-in-btn"),
   zoomValue: byId<HTMLOutputElement>("zoom-value"),
@@ -62,7 +65,6 @@ let selectedFile: File | null = null;
 let previewRevision = 0;
 let previewZoom = 1;
 let isPositioningText = false;
-let previewTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 const formatBytes = (bytes: number) => {
@@ -118,7 +120,12 @@ const applyPlacedText = (context: CanvasRenderingContext2D, width: number, heigh
   context.restore();
 };
 
-const renderPage = async (page: PDFPageProxy, dpi: number, canvas: HTMLCanvasElement) => {
+const renderPage = async (
+  page: PDFPageProxy,
+  dpi: number,
+  canvas: HTMLCanvasElement,
+  includePlacedText = true,
+) => {
   const viewport = page.getViewport({ scale: dpi / 72 });
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new Error("无法创建 Canvas 绘图上下文");
@@ -128,7 +135,24 @@ const renderPage = async (page: PDFPageProxy, dpi: number, canvas: HTMLCanvasEle
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvas, canvasContext: context, viewport, background: "#ffffff" }).promise;
-  applyPlacedText(context, canvas.width, canvas.height, dpi);
+  if (includePlacedText) applyPlacedText(context, canvas.width, canvas.height, dpi);
+};
+
+const updatePreviewText = () => {
+  const settings = getSettings();
+  const displayScale = elements.previewCanvas.width === 0
+    ? 0
+    : elements.previewPage.clientWidth / elements.previewCanvas.width;
+  const fontSize = settings.fontSize * (PREVIEW_DPI / 72) * displayScale;
+
+  elements.previewTextAnchor.hidden = !settings.text;
+  elements.previewTextAnchor.style.left = `${settings.positionX * 100}%`;
+  elements.previewTextAnchor.style.top = `${settings.positionY * 100}%`;
+  elements.previewTextAnchor.style.transform = `rotate(${settings.angle}deg)`;
+  elements.previewText.textContent = settings.text;
+  elements.previewText.style.color = settings.color;
+  elements.previewText.style.fontSize = `${fontSize}px`;
+  elements.previewText.style.opacity = String(settings.opacity);
 };
 
 const updatePreviewSize = () => {
@@ -142,11 +166,12 @@ const updatePreviewSize = () => {
   );
   const displayWidth = Math.round(elements.previewCanvas.width * fitScale * previewZoom);
   const displayHeight = Math.round(elements.previewCanvas.height * fitScale * previewZoom);
-  elements.previewCanvas.style.width = `${displayWidth}px`;
-  elements.previewCanvas.style.height = `${displayHeight}px`;
+  elements.previewPage.style.width = `${displayWidth}px`;
+  elements.previewPage.style.height = `${displayHeight}px`;
   elements.zoomValue.textContent = `${Math.round(previewZoom * 100)}%`;
   elements.zoomOutButton.disabled = previewZoom <= 0.5;
   elements.zoomInButton.disabled = previewZoom >= 2;
+  updatePreviewText();
 };
 
 const setPreviewZoom = (zoom: number) => {
@@ -163,7 +188,7 @@ const renderPreview = async () => {
   try {
     const page = await pdfDocument.getPage(1);
     if (revision !== previewRevision) return;
-    await renderPage(page, PREVIEW_DPI, elements.previewCanvas);
+    await renderPage(page, PREVIEW_DPI, elements.previewCanvas, false);
     if (revision !== previewRevision) return;
     updatePreviewSize();
     elements.previewLoader.hidden = true;
@@ -171,11 +196,6 @@ const renderPreview = async () => {
   } catch {
     if (revision === previewRevision) showToast(t("loadFailed"), true);
   }
-};
-
-const schedulePreview = () => {
-  clearTimeout(previewTimer);
-  previewTimer = setTimeout(() => void renderPreview(), 180);
 };
 
 const updateLabels = () => {
@@ -321,11 +341,11 @@ const resetSettings = () => {
   elements.positionYRange.value = "70";
   setPreviewZoom(1);
   updateLabels();
-  schedulePreview();
+  updatePreviewText();
 };
 
 const updatePositionFromPointer = (event: PointerEvent) => {
-  const bounds = elements.previewCanvas.getBoundingClientRect();
+  const bounds = elements.previewPage.getBoundingClientRect();
   if (bounds.width === 0 || bounds.height === 0) return;
 
   const positionX = Math.min(100, Math.max(0, ((event.clientX - bounds.left) / bounds.width) * 100));
@@ -333,7 +353,7 @@ const updatePositionFromPointer = (event: PointerEvent) => {
   elements.positionXRange.value = String(Math.round(positionX));
   elements.positionYRange.value = String(Math.round(positionY));
   updateLabels();
-  schedulePreview();
+  updatePreviewText();
 };
 
 const bindEvents = () => {
@@ -372,7 +392,7 @@ const bindEvents = () => {
   ];
   previewInputs.forEach((input) => input.addEventListener("input", () => {
     updateLabels();
-    schedulePreview();
+    updatePreviewText();
   }));
   elements.dpiSelect.addEventListener("change", updateLabels);
   elements.formatSelect.addEventListener("change", updateLabels);
@@ -380,24 +400,30 @@ const bindEvents = () => {
   elements.exportButton.addEventListener("click", () => void exportImages());
   elements.zoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - 0.25));
   elements.zoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + 0.25));
-  elements.previewCanvas.addEventListener("pointerdown", (event) => {
+  elements.previewPage.addEventListener("pointerdown", (event) => {
     isPositioningText = true;
-    elements.previewCanvas.classList.add("is-positioning");
-    elements.previewCanvas.setPointerCapture(event.pointerId);
+    elements.previewPage.classList.add("is-positioning");
+    elements.previewPage.setPointerCapture(event.pointerId);
     updatePositionFromPointer(event);
   });
-  elements.previewCanvas.addEventListener("pointermove", (event) => {
+  elements.previewPage.addEventListener("pointermove", (event) => {
     if (isPositioningText) updatePositionFromPointer(event);
   });
-  elements.previewCanvas.addEventListener("pointerup", (event) => {
+  elements.previewPage.addEventListener("pointerup", (event) => {
     isPositioningText = false;
-    elements.previewCanvas.classList.remove("is-positioning");
-    elements.previewCanvas.releasePointerCapture(event.pointerId);
+    elements.previewPage.classList.remove("is-positioning");
+    elements.previewPage.releasePointerCapture(event.pointerId);
   });
-  elements.previewCanvas.addEventListener("pointercancel", () => {
+  elements.previewPage.addEventListener("pointercancel", () => {
     isPositioningText = false;
-    elements.previewCanvas.classList.remove("is-positioning");
+    elements.previewPage.classList.remove("is-positioning");
   });
+  elements.previewStage.addEventListener("wheel", (event) => {
+    if (!pdfDocument) return;
+    event.preventDefault();
+    const direction = event.deltaY < 0 ? 0.1 : -0.1;
+    setPreviewZoom(Math.round((previewZoom + direction) * 10) / 10);
+  }, { passive: false });
   elements.localeButton.addEventListener("click", () => {
     setLocale(getLocale() === "zh" ? "en" : "zh");
     applyTranslations();

@@ -175,10 +175,15 @@
                 <span></span><span data-i18n="rendering">正在渲染预览…</span>
               </div>
               <div class="preview-document">
-                <canvas id="preview-canvas" aria-label="PDF 指定位置贴字效果预览"></canvas>
+                <div id="preview-page" class="preview-page">
+                  <canvas id="preview-canvas" aria-label="PDF 指定位置贴字效果预览"></canvas>
+                  <div id="preview-text-anchor" class="preview-text-anchor" aria-hidden="true">
+                    <div id="preview-text" class="preview-text"></div>
+                  </div>
+                </div>
               </div>
             </div>
-            <p class="preview-note" data-i18n="previewNote">点击或拖动预览可定位文字；下载时会按相同位置高清渲染。</p>
+            <p class="preview-note" data-i18n="previewNote">拖动文字实时定位，滚动鼠标滚轮缩放预览；导出位置保持一致。</p>
           </div>
         </section>
       </main>
