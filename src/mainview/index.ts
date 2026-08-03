@@ -284,7 +284,7 @@ const resetSettings = () => {
   elements.angleSelect.value = "0";
   elements.fontSizeRange.value = "24";
   elements.positionXRange.value = "10";
-  elements.positionYRange.value = "90";
+  elements.positionYRange.value = "70";
   updateLabels();
   schedulePreview();
 };
