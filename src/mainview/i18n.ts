@@ -2,6 +2,8 @@ const messages = {
   zh: {
     brand: "PDF 贴字工坊",
     localOnly: "本地处理",
+    starProject: "GitHub Star",
+    starProjectAria: "在 GitHub 为项目加星",
     eyebrow: "高清 · 无损 · 不上传",
     title: "把文字准确贴到 PDF 指定位置",
     subtitle: "专为表格和小字号文档优化。点击预览定位文字，再导出 300 DPI 无损 PNG。",
@@ -50,6 +52,8 @@ const messages = {
   en: {
     brand: "PDF Text Placer",
     localOnly: "On-device",
+    starProject: "GitHub Star",
+    starProjectAria: "Star this project on GitHub",
     eyebrow: "Sharp · Lossless · Private",
     title: "Place text exactly where your PDF needs it",
     subtitle: "Built for tables and small text. Click to position text, then export a lossless 300 DPI PNG.",

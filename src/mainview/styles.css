@@ -152,6 +152,34 @@ button:not(:disabled) {
   transition: background 160ms ease, border-color 160ms ease;
 }
 
+.github-link {
+  display: inline-flex;
+  min-height: 38px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 720;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.github-link svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.github-link:hover {
+  border-color: #aeb4af;
+  box-shadow: 0 6px 18px rgba(32, 38, 33, 0.09);
+  transform: translateY(-1px);
+}
+
 .locale-btn:hover {
   background: #fff;
   border-color: var(--line);
@@ -866,6 +894,10 @@ a:focus-visible {
     display: none;
   }
 
+  .github-link {
+    min-height: 44px;
+  }
+
   .hero {
     margin: 48px auto 30px;
   }
@@ -908,6 +940,18 @@ a:focus-visible {
     align-items: flex-end;
     flex-direction: column;
     gap: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .github-link {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .github-link span {
+    display: none;
   }
 }
 
