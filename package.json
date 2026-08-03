@@ -1,0 +1,20 @@
+{
+  "name": "pdf-watermark",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 1421",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^5.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^7.1.7"
+  }
+}

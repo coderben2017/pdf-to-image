@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="在浏览器本地将 PDF 转为高清图片并添加文字水印" />
+    <meta name="theme-color" content="#f5f3ee" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23222b25'/%3E%3Cpath d='M19 14h19l9 9v27H19z' fill='%23fff'/%3E%3Cpath d='M38 14v10h9' fill='none' stroke='%2397d49a' stroke-width='4'/%3E%3Cpath d='M24 35h18M24 42h14' stroke='%23222b25' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <title>PDF 水印工坊</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="PDF 水印工坊首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M6 2.75h8l4 4v14.5H6z"/><path d="M14 2.75v4h4M9 12h6M9 15.5h6"/></svg>
+          </span>
+          <span data-i18n="brand">PDF 水印工坊</span>
+        </a>
+        <div class="header-actions">
+          <span class="local-pill"><span class="status-dot"></span><span data-i18n="localOnly">本地处理</span></span>
+          <button id="locale-btn" class="locale-btn" type="button" aria-label="Switch language">EN</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <p class="eyebrow" data-i18n="eyebrow">高清 · 无损 · 不上传</p>
+          <h1 data-i18n="title">把 PDF 变成清晰、可信的图片</h1>
+          <p class="hero-copy" data-i18n="subtitle">专为表格和小字号文档优化。添加文字水印，直接导出 300 DPI 无损 PNG。</p>
+        </section>
+
+        <section id="upload-section" class="upload-section">
+          <input id="file-input" type="file" accept="application/pdf,.pdf" hidden />
+          <button id="drop-zone" class="drop-zone" type="button">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 14v5h14v-5"/></svg>
+            </span>
+            <span class="drop-title" data-i18n="dropTitle">拖入 PDF，或点击选择</span>
+            <span class="drop-hint" data-i18n="dropHint">推荐单页表格文件，最大 100 MB</span>
+          </button>
+          <div class="trust-row" aria-label="文件处理说明">
+            <span><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.8 8-7 10-4.2-2-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><span data-i18n="privacy">文件不离开设备</span></span>
+            <span><svg viewBox="0 0 24 24"><path d="M4 19V5h16v14zM8 9h8M8 13h8"/></svg><span data-i18n="tableReady">细线清晰保留</span></span>
+            <span><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg><span data-i18n="highDpi">最高 600 DPI</span></span>
+          </div>
+        </section>
+
+        <section id="workspace" class="workspace" hidden>
+          <aside class="settings-panel">
+            <div class="file-card">
+              <span class="file-badge">PDF</span>
+              <span class="file-info">
+                <strong id="file-name"></strong>
+                <span id="file-meta"></span>
+              </span>
+              <button id="replace-btn" class="icon-button" type="button" data-i18n-aria="replaceFile" aria-label="更换文件">
+                <svg viewBox="0 0 24 24"><path d="M20 7h-5V2M4 17h5v5M19 12a7 7 0 0 0-12-5l-3 3M5 12a7 7 0 0 0 12 5l3-3"/></svg>
+              </button>
+            </div>
+
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" data-i18n="settingsKicker">导出设置</p>
+                <h2 data-i18n="settingsTitle">水印与清晰度</h2>
+              </div>
+              <button id="reset-btn" class="text-button" type="button" data-i18n="reset">重置</button>
+            </div>
+
+            <div class="field-group">
+              <label for="watermark-text" data-i18n="watermarkText">水印文字</label>
+              <input id="watermark-text" type="text" maxlength="40" value="仅供内部使用" data-i18n-placeholder="watermarkPlaceholder" placeholder="仅供内部使用" />
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="dpi-select" data-i18n="resolution">输出精度</label>
+                <select id="dpi-select">
+                  <option value="300">300 DPI</option>
+                  <option value="600">600 DPI</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="format-select" data-i18n="format">图片格式</label>
+                <select id="format-select">
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group range-field">
+              <div class="label-row">
+                <label for="opacity-range" data-i18n="opacity">透明度</label>
+                <output id="opacity-value">15%</output>
+              </div>
+              <input id="opacity-range" type="range" min="5" max="50" value="15" />
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="angle-select" data-i18n="angle">水印角度</label>
+                <select id="angle-select">
+                  <option value="-30">−30°</option>
+                  <option value="-45">−45°</option>
+                  <option value="0">0°</option>
+                  <option value="30">30°</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="density-select" data-i18n="density">平铺密度</label>
+                <select id="density-select">
+                  <option value="1" data-i18n="sparse">疏</option>
+                  <option value="1.35" selected data-i18n="balanced">适中</option>
+                  <option value="1.8" data-i18n="dense">密</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group range-field">
+              <div class="label-row">
+                <label for="font-size-range" data-i18n="fontSize">水印字号</label>
+                <output id="font-size-value">36 pt</output>
+              </div>
+              <input id="font-size-range" type="range" min="20" max="72" value="36" />
+            </div>
+
+            <div class="export-box">
+              <div id="progress-wrap" class="progress-wrap" hidden>
+                <div class="progress-copy"><span id="progress-text" data-i18n="preparing">正在准备…</span><span id="progress-value">0%</span></div>
+                <div class="progress-track"><span id="progress-bar"></span></div>
+              </div>
+              <button id="export-btn" class="primary-button" type="button">
+                <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"/></svg>
+                <span id="export-label" data-i18n="exportPng">导出高清 PNG</span>
+              </button>
+              <p id="export-hint" data-i18n="exportHint">A4 约 2480 × 3508 px</p>
+            </div>
+          </aside>
+
+          <div class="preview-panel">
+            <div class="preview-toolbar">
+              <div>
+                <p class="section-kicker" data-i18n="previewKicker">实时预览</p>
+                <h2 data-i18n="previewTitle">第 1 页</h2>
+              </div>
+              <span id="preview-status" class="preview-status"><span></span><span data-i18n="previewReady">预览已更新</span></span>
+            </div>
+            <div id="preview-stage" class="preview-stage">
+              <div id="preview-loader" class="preview-loader">
+                <span></span><span data-i18n="rendering">正在渲染预览…</span>
+              </div>
+              <canvas id="preview-canvas" aria-label="PDF 水印效果预览"></canvas>
+            </div>
+            <p class="preview-note" data-i18n="previewNote">预览经过缩放；下载文件将按所选 DPI 重新高清渲染。</p>
+          </div>
+        </section>
+      </main>
+
+      <footer><span data-i18n="footer">浏览器本地处理 · 不留存任何文件</span></footer>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

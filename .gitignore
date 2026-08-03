@@ -1,0 +1,15 @@
+# Node.js dependencies and caches
+node_modules/
+
+# Build outputs
+dist/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
