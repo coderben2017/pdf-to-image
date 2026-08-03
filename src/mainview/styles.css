@@ -155,28 +155,35 @@ button:not(:disabled) {
 .github-link {
   display: inline-flex;
   min-height: 38px;
-  padding: 0 12px;
+  padding: 0 13px;
   align-items: center;
-  gap: 7px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  color: var(--ink);
+  gap: 8px;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 7px 18px rgba(32, 38, 33, 0.14);
+  color: #fff;
   font-size: 12px;
-  font-weight: 720;
+  font-weight: 750;
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .github-link svg {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
 }
 
+.github-link .star-mark {
+  width: 14px;
+  height: 14px;
+  color: #f5c85b;
+}
+
 .github-link:hover {
-  border-color: #aeb4af;
-  box-shadow: 0 6px 18px rgba(32, 38, 33, 0.09);
+  background: #313a33;
+  box-shadow: 0 10px 24px rgba(32, 38, 33, 0.2);
   transform: translateY(-1px);
 }
 
@@ -951,6 +958,10 @@ a:focus-visible {
   }
 
   .github-link span {
+    display: none;
+  }
+
+  .github-link .star-mark {
     display: none;
   }
 }

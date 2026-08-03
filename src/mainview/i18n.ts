@@ -2,7 +2,7 @@ const messages = {
   zh: {
     brand: "PDF 贴字工坊",
     localOnly: "本地处理",
-    starProject: "GitHub Star",
+    starProject: "Star",
     starProjectAria: "在 GitHub 为项目加星",
     eyebrow: "高清 · 无损 · 不上传",
     title: "把文字准确贴到 PDF 指定位置",
@@ -52,7 +52,7 @@ const messages = {
   en: {
     brand: "PDF Text Placer",
     localOnly: "On-device",
-    starProject: "GitHub Star",
+    starProject: "Star",
     starProjectAria: "Star this project on GitHub",
     eyebrow: "Sharp · Lossless · Private",
     title: "Place text exactly where your PDF needs it",
