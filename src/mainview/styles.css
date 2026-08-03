@@ -688,6 +688,11 @@ main {
   background-size: 16px 16px;
   border: 1px solid #e0e2dd;
   border-radius: 12px;
+  cursor: grab;
+}
+
+.preview-stage.is-panning {
+  cursor: grabbing;
 }
 
 .preview-document {
@@ -706,13 +711,9 @@ main {
   overflow: hidden;
   background: #fff;
   box-shadow: 0 14px 35px rgba(33, 39, 34, 0.18);
-  cursor: crosshair;
+  cursor: grab;
   touch-action: none;
   user-select: none;
-}
-
-.preview-page.is-positioning {
-  cursor: grabbing;
 }
 
 #preview-canvas {
@@ -738,6 +739,13 @@ main {
   font-weight: 650;
   line-height: 1.35;
   white-space: pre;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.preview-text.is-positioning {
+  cursor: grabbing;
 }
 
 .preview-loader {

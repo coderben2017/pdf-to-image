@@ -64,7 +64,16 @@ let pdfDocument: PDFDocumentProxy | null = null;
 let selectedFile: File | null = null;
 let previewRevision = 0;
 let previewZoom = 1;
+let panStartX = 0;
+let panStartY = 0;
+let panStartScrollLeft = 0;
+let panStartScrollTop = 0;
+let textDragOffsetX = 0;
+let textDragOffsetY = 0;
+
 let isPositioningText = false;
+let isPanningPreview = false;
+
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 const formatBytes = (bytes: number) => {
@@ -348,8 +357,10 @@ const updatePositionFromPointer = (event: PointerEvent) => {
   const bounds = elements.previewPage.getBoundingClientRect();
   if (bounds.width === 0 || bounds.height === 0) return;
 
-  const positionX = Math.min(100, Math.max(0, ((event.clientX - bounds.left) / bounds.width) * 100));
-  const positionY = Math.min(100, Math.max(0, ((event.clientY - bounds.top) / bounds.height) * 100));
+  const pointerX = ((event.clientX - bounds.left) / bounds.width) * 100;
+  const pointerY = ((event.clientY - bounds.top) / bounds.height) * 100;
+  const positionX = Math.min(100, Math.max(0, pointerX - textDragOffsetX));
+  const positionY = Math.min(100, Math.max(0, pointerY - textDragOffsetY));
   elements.positionXRange.value = String(Math.round(positionX));
   elements.positionYRange.value = String(Math.round(positionY));
   updateLabels();
@@ -400,23 +411,55 @@ const bindEvents = () => {
   elements.exportButton.addEventListener("click", () => void exportImages());
   elements.zoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - 0.25));
   elements.zoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + 0.25));
-  elements.previewPage.addEventListener("pointerdown", (event) => {
+  elements.previewText.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const bounds = elements.previewPage.getBoundingClientRect();
+    const settings = getSettings();
+    textDragOffsetX = ((event.clientX - bounds.left) / bounds.width) * 100 - settings.positionX * 100;
+    textDragOffsetY = ((event.clientY - bounds.top) / bounds.height) * 100 - settings.positionY * 100;
     isPositioningText = true;
-    elements.previewPage.classList.add("is-positioning");
-    elements.previewPage.setPointerCapture(event.pointerId);
-    updatePositionFromPointer(event);
+    elements.previewText.classList.add("is-positioning");
+    elements.previewText.setPointerCapture(event.pointerId);
   });
-  elements.previewPage.addEventListener("pointermove", (event) => {
+  elements.previewText.addEventListener("pointermove", (event) => {
     if (isPositioningText) updatePositionFromPointer(event);
   });
-  elements.previewPage.addEventListener("pointerup", (event) => {
+  elements.previewText.addEventListener("pointerup", (event) => {
     isPositioningText = false;
-    elements.previewPage.classList.remove("is-positioning");
-    elements.previewPage.releasePointerCapture(event.pointerId);
+    elements.previewText.classList.remove("is-positioning");
+    elements.previewText.releasePointerCapture(event.pointerId);
   });
-  elements.previewPage.addEventListener("pointercancel", () => {
+  elements.previewText.addEventListener("pointercancel", () => {
     isPositioningText = false;
-    elements.previewPage.classList.remove("is-positioning");
+    elements.previewText.classList.remove("is-positioning");
+  });
+  elements.previewStage.addEventListener("pointerdown", (event) => {
+    if (!pdfDocument || event.button !== 0) return;
+    event.preventDefault();
+    isPanningPreview = true;
+    panStartX = event.clientX;
+    panStartY = event.clientY;
+    panStartScrollLeft = elements.previewStage.scrollLeft;
+    panStartScrollTop = elements.previewStage.scrollTop;
+    elements.previewStage.classList.add("is-panning");
+    elements.previewStage.setPointerCapture(event.pointerId);
+  });
+  elements.previewStage.addEventListener("pointermove", (event) => {
+    if (!isPanningPreview) return;
+    elements.previewStage.scrollLeft = panStartScrollLeft - (event.clientX - panStartX);
+    elements.previewStage.scrollTop = panStartScrollTop - (event.clientY - panStartY);
+  });
+  elements.previewStage.addEventListener("pointerup", (event) => {
+    if (!isPanningPreview) return;
+    isPanningPreview = false;
+    elements.previewStage.classList.remove("is-panning");
+    elements.previewStage.releasePointerCapture(event.pointerId);
+  });
+  elements.previewStage.addEventListener("pointercancel", () => {
+    isPanningPreview = false;
+    elements.previewStage.classList.remove("is-panning");
   });
   elements.previewStage.addEventListener("wheel", (event) => {
     if (!pdfDocument) return;
