@@ -1,8 +1,8 @@
-# PDF 贴字工坊
+# PDF 转图片
 
 一个完全在浏览器本地运行的 PDF 指定位置贴字与高清图片导出工具，适合单页表格 PDF。默认以 300 DPI 输出无损 PNG。
 
-在线使用：[https://coderben2017.github.io/pdf-watermark/](https://coderben2017.github.io/pdf-watermark/)
+在线使用：[https://coderben2017.github.io/pdf-to-image/](https://coderben2017.github.io/pdf-to-image/)
 
 ## 功能
 

@@ -21,6 +21,7 @@ const elements = {
   uploadSection: byId<HTMLElement>("upload-section"),
   fileInput: byId<HTMLInputElement>("file-input"),
   dropZone: byId<HTMLButtonElement>("drop-zone"),
+  uploadLoader: byId<HTMLElement>("upload-loader"),
   workspace: byId<HTMLElement>("workspace"),
   fileName: byId<HTMLElement>("file-name"),
   fileMeta: byId<HTMLElement>("file-meta"),
@@ -245,6 +246,9 @@ const loadFile = async (file: File) => {
   }
 
   elements.dropZone.disabled = true;
+  elements.dropZone.setAttribute("aria-busy", "true");
+  elements.dropZone.classList.add("is-loading");
+  elements.uploadLoader.hidden = false;
   try {
     await pdfDocument?.destroy();
     const data = await file.arrayBuffer();
@@ -264,6 +268,9 @@ const loadFile = async (file: File) => {
     showToast(t("loadFailed"), true);
   } finally {
     elements.dropZone.disabled = false;
+    elements.dropZone.setAttribute("aria-busy", "false");
+    elements.dropZone.classList.remove("is-loading");
+    elements.uploadLoader.hidden = true;
     elements.fileInput.value = "";
   }
 };

@@ -197,7 +197,7 @@ main {
 }
 
 .hero {
-  max-width: 760px;
+  max-width: 900px;
   margin: 72px auto 42px;
   text-align: center;
   animation: rise-in 480ms ease-out both;
@@ -216,18 +216,19 @@ main {
 .hero h1 {
   margin: 15px 0 16px;
   color: #1d241f;
-  font-size: clamp(38px, 5.4vw, 64px);
+  font-size: clamp(38px, 5.2vw, 60px);
   font-weight: 780;
   letter-spacing: -0.055em;
   line-height: 1.08;
 }
 
 .hero-copy {
-  max-width: 650px;
+  max-width: 820px;
   margin: 0 auto;
   color: var(--muted);
   font-size: clamp(16px, 2vw, 19px);
   line-height: 1.7;
+  text-wrap: balance;
 }
 
 .upload-section {
@@ -257,6 +258,41 @@ main {
 .drop-zone.is-dragging {
   transform: translateY(-2px);
   box-shadow: 0 30px 80px rgba(42, 49, 44, 0.15);
+}
+
+.drop-zone.is-loading {
+  transform: none;
+  cursor: wait;
+}
+
+.drop-zone.is-loading > :not(.upload-loader) {
+  display: none;
+}
+
+.upload-loader {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.upload-loader strong {
+  margin-top: 16px;
+  font-size: 17px;
+}
+
+.upload-loader small {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.upload-spinner {
+  width: 46px;
+  height: 46px;
+  border: 3px solid #d8e5da;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
 }
 
 .drop-zone.is-dragging {
