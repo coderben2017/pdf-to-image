@@ -108,13 +108,21 @@
                   <option value="30">30°</option>
                 </select>
               </div>
-              <div class="field-group range-field compact-range">
-                <div class="label-row">
-                  <label for="font-size-range" data-i18n="fontSize">文字字号</label>
-                  <output id="font-size-value">24 pt</output>
+              <div class="field-group">
+                <label for="text-color" data-i18n="textColor">文字颜色</label>
+                <div class="color-control">
+                  <input id="text-color" type="color" value="#000000" />
+                  <output id="text-color-value">#000000</output>
                 </div>
-                <input id="font-size-range" type="range" min="12" max="72" value="24" />
               </div>
+            </div>
+
+            <div class="field-group range-field">
+              <div class="label-row">
+                <label for="font-size-range" data-i18n="fontSize">文字字号</label>
+                <output id="font-size-value">16 pt</output>
+              </div>
+              <input id="font-size-range" type="range" min="8" max="72" value="16" />
             </div>
 
             <div class="field-row position-row">
@@ -153,13 +161,22 @@
                 <p class="section-kicker" data-i18n="previewKicker">实时预览</p>
                 <h2 data-i18n="previewTitle">第 1 页</h2>
               </div>
-              <span id="preview-status" class="preview-status"><span></span><span data-i18n="previewReady">预览已更新</span></span>
+              <div class="preview-actions">
+                <span id="preview-status" class="preview-status"><span></span><span data-i18n="previewReady">预览已更新</span></span>
+                <div class="zoom-controls" role="group" data-i18n-aria="zoomLabel" aria-label="预览缩放">
+                  <button id="zoom-out-btn" type="button" data-i18n-aria="zoomOut" aria-label="缩小预览">−</button>
+                  <output id="zoom-value">100%</output>
+                  <button id="zoom-in-btn" type="button" data-i18n-aria="zoomIn" aria-label="放大预览">+</button>
+                </div>
+              </div>
             </div>
             <div id="preview-stage" class="preview-stage">
               <div id="preview-loader" class="preview-loader">
                 <span></span><span data-i18n="rendering">正在渲染预览…</span>
               </div>
-              <canvas id="preview-canvas" aria-label="PDF 指定位置贴字效果预览"></canvas>
+              <div class="preview-document">
+                <canvas id="preview-canvas" aria-label="PDF 指定位置贴字效果预览"></canvas>
+              </div>
             </div>
             <p class="preview-note" data-i18n="previewNote">点击或拖动预览可定位文字；下载时会按相同位置高清渲染。</p>
           </div>

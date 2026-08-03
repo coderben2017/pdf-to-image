@@ -450,6 +450,32 @@ main {
   font-size: 10px;
 }
 
+.color-control {
+  display: flex;
+  height: 44px;
+  padding: 5px 10px 5px 6px;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.color-control input[type="color"] {
+  width: 34px;
+  height: 32px;
+  padding: 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+}
+
+.color-control output {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .field-group select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, #768078 50%), linear-gradient(135deg, #768078 50%, transparent 50%);
@@ -589,6 +615,50 @@ main {
   justify-content: space-between;
 }
 
+.preview-actions,
+.zoom-controls {
+  display: flex;
+  align-items: center;
+}
+
+.preview-actions {
+  gap: 14px;
+}
+
+.zoom-controls {
+  overflow: hidden;
+  background: #f4f4f0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.zoom-controls button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.zoom-controls button:hover:not(:disabled) {
+  background: #fff;
+}
+
+.zoom-controls button:disabled {
+  color: #adb2ad;
+  cursor: default;
+}
+
+.zoom-controls output {
+  min-width: 48px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 720;
+  text-align: center;
+}
+
 .preview-status {
   display: inline-flex;
   align-items: center;
@@ -606,10 +676,8 @@ main {
 
 .preview-stage {
   position: relative;
-  display: grid;
-  min-height: 570px;
-  overflow: hidden;
-  place-items: center;
+  height: 570px;
+  overflow: auto;
   background:
     linear-gradient(45deg, #e8e9e5 25%, transparent 25%),
     linear-gradient(-45deg, #e8e9e5 25%, transparent 25%),
@@ -622,12 +690,19 @@ main {
   border-radius: 12px;
 }
 
+.preview-document {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
 #preview-canvas {
   display: block;
-  width: auto;
-  max-width: calc(100% - 48px);
-  height: auto;
-  max-height: 530px;
+  flex: 0 0 auto;
   background: #fff;
   box-shadow: 0 14px 35px rgba(33, 39, 34, 0.18);
   cursor: crosshair;
@@ -740,11 +815,7 @@ a:focus-visible {
   }
 
   .preview-stage {
-    min-height: 470px;
-  }
-
-  #preview-canvas {
-    max-height: 430px;
+    height: 470px;
   }
 }
 
@@ -792,12 +863,17 @@ a:focus-visible {
   }
 
   .preview-stage {
-    min-height: 390px;
+    height: 390px;
   }
 
-  #preview-canvas {
-    max-width: calc(100% - 28px);
-    max-height: 360px;
+  .preview-document {
+    padding: 14px;
+  }
+
+  .preview-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 7px;
   }
 }
 

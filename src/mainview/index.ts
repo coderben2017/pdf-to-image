@@ -32,6 +32,8 @@ const elements = {
   opacityRange: byId<HTMLInputElement>("opacity-range"),
   opacityValue: byId<HTMLOutputElement>("opacity-value"),
   angleSelect: byId<HTMLSelectElement>("angle-select"),
+  textColor: byId<HTMLInputElement>("text-color"),
+  textColorValue: byId<HTMLOutputElement>("text-color-value"),
   fontSizeRange: byId<HTMLInputElement>("font-size-range"),
   fontSizeValue: byId<HTMLOutputElement>("font-size-value"),
   positionXRange: byId<HTMLInputElement>("position-x-range"),
@@ -46,14 +48,19 @@ const elements = {
   progressValue: byId<HTMLElement>("progress-value"),
   progressBar: byId<HTMLElement>("progress-bar"),
   previewStatus: byId<HTMLElement>("preview-status"),
+  previewStage: byId<HTMLElement>("preview-stage"),
   previewLoader: byId<HTMLElement>("preview-loader"),
   previewCanvas: byId<HTMLCanvasElement>("preview-canvas"),
+  zoomOutButton: byId<HTMLButtonElement>("zoom-out-btn"),
+  zoomInButton: byId<HTMLButtonElement>("zoom-in-btn"),
+  zoomValue: byId<HTMLOutputElement>("zoom-value"),
   toast: byId<HTMLElement>("toast"),
 };
 
 let pdfDocument: PDFDocumentProxy | null = null;
 let selectedFile: File | null = null;
 let previewRevision = 0;
+let previewZoom = 1;
 let isPositioningText = false;
 let previewTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -79,6 +86,7 @@ const getSettings = () => ({
   format: elements.formatSelect.value as "png" | "jpeg",
   opacity: Number(elements.opacityRange.value) / 100,
   angle: Number(elements.angleSelect.value),
+  color: elements.textColor.value,
   fontSize: Number(elements.fontSizeRange.value),
   positionX: Number(elements.positionXRange.value) / 100,
   positionY: Number(elements.positionYRange.value) / 100,
@@ -99,7 +107,7 @@ const applyPlacedText = (context: CanvasRenderingContext2D, width: number, heigh
   context.translate(positionX, positionY);
   context.rotate((settings.angle * Math.PI) / 180);
   context.globalAlpha = settings.opacity;
-  context.fillStyle = "#405848";
+  context.fillStyle = settings.color;
   context.font = `650 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif`;
   context.textAlign = "left";
   context.textBaseline = "bottom";
@@ -123,6 +131,29 @@ const renderPage = async (page: PDFPageProxy, dpi: number, canvas: HTMLCanvasEle
   applyPlacedText(context, canvas.width, canvas.height, dpi);
 };
 
+const updatePreviewSize = () => {
+  if (elements.previewCanvas.width === 0 || elements.previewCanvas.height === 0) return;
+
+  const availableWidth = Math.max(240, elements.previewStage.clientWidth - 48);
+  const availableHeight = Math.max(300, elements.previewStage.clientHeight - 48);
+  const fitScale = Math.min(
+    availableWidth / elements.previewCanvas.width,
+    availableHeight / elements.previewCanvas.height,
+  );
+  const displayWidth = Math.round(elements.previewCanvas.width * fitScale * previewZoom);
+  const displayHeight = Math.round(elements.previewCanvas.height * fitScale * previewZoom);
+  elements.previewCanvas.style.width = `${displayWidth}px`;
+  elements.previewCanvas.style.height = `${displayHeight}px`;
+  elements.zoomValue.textContent = `${Math.round(previewZoom * 100)}%`;
+  elements.zoomOutButton.disabled = previewZoom <= 0.5;
+  elements.zoomInButton.disabled = previewZoom >= 2;
+};
+
+const setPreviewZoom = (zoom: number) => {
+  previewZoom = Math.min(2, Math.max(0.5, zoom));
+  updatePreviewSize();
+};
+
 const renderPreview = async () => {
   if (!pdfDocument) return;
   const revision = ++previewRevision;
@@ -134,6 +165,7 @@ const renderPreview = async () => {
     if (revision !== previewRevision) return;
     await renderPage(page, PREVIEW_DPI, elements.previewCanvas);
     if (revision !== previewRevision) return;
+    updatePreviewSize();
     elements.previewLoader.hidden = true;
     elements.previewStatus.style.opacity = "1";
   } catch {
@@ -148,6 +180,7 @@ const schedulePreview = () => {
 
 const updateLabels = () => {
   elements.opacityValue.textContent = `${elements.opacityRange.value}%`;
+  elements.textColorValue.textContent = elements.textColor.value.toUpperCase();
   elements.fontSizeValue.textContent = `${elements.fontSizeRange.value} pt`;
   elements.positionXValue.textContent = `${elements.positionXRange.value}%`;
   elements.positionYValue.textContent = `${elements.positionYRange.value}%`;
@@ -282,9 +315,11 @@ const resetSettings = () => {
   elements.formatSelect.value = "png";
   elements.opacityRange.value = "100";
   elements.angleSelect.value = "0";
-  elements.fontSizeRange.value = "24";
+  elements.textColor.value = "#000000";
+  elements.fontSizeRange.value = "16";
   elements.positionXRange.value = "10";
   elements.positionYRange.value = "70";
+  setPreviewZoom(1);
   updateLabels();
   schedulePreview();
 };
@@ -330,6 +365,7 @@ const bindEvents = () => {
     elements.textContent,
     elements.opacityRange,
     elements.angleSelect,
+    elements.textColor,
     elements.fontSizeRange,
     elements.positionXRange,
     elements.positionYRange,
@@ -342,6 +378,8 @@ const bindEvents = () => {
   elements.formatSelect.addEventListener("change", updateLabels);
   elements.resetButton.addEventListener("click", resetSettings);
   elements.exportButton.addEventListener("click", () => void exportImages());
+  elements.zoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - 0.25));
+  elements.zoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + 0.25));
   elements.previewCanvas.addEventListener("pointerdown", (event) => {
     isPositioningText = true;
     elements.previewCanvas.classList.add("is-positioning");
@@ -367,6 +405,7 @@ const bindEvents = () => {
     updateFileMeta();
     updateLabels();
   });
+  window.addEventListener("resize", updatePreviewSize);
 };
 
 applyTranslations();
