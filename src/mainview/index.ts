@@ -26,7 +26,7 @@ const elements = {
   fileMeta: byId<HTMLElement>("file-meta"),
   replaceButton: byId<HTMLButtonElement>("replace-btn"),
   resetButton: byId<HTMLButtonElement>("reset-btn"),
-  textContent: byId<HTMLInputElement>("text-content"),
+  textContent: byId<HTMLTextAreaElement>("text-content"),
   dpiSelect: byId<HTMLSelectElement>("dpi-select"),
   formatSelect: byId<HTMLSelectElement>("format-select"),
   opacityRange: byId<HTMLInputElement>("opacity-range"),
@@ -92,6 +92,8 @@ const applyPlacedText = (context: CanvasRenderingContext2D, width: number, heigh
   const fontSize = settings.fontSize * pixelRatio;
   const positionX = width * settings.positionX;
   const positionY = height * settings.positionY;
+  const lines = settings.text.split(/\r?\n/);
+  const lineHeight = fontSize * 1.35;
 
   context.save();
   context.translate(positionX, positionY);
@@ -99,9 +101,12 @@ const applyPlacedText = (context: CanvasRenderingContext2D, width: number, heigh
   context.globalAlpha = settings.opacity;
   context.fillStyle = "#405848";
   context.font = `650 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif`;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(settings.text, 0, 0);
+  context.textAlign = "left";
+  context.textBaseline = "bottom";
+  lines.forEach((line, index) => {
+    const offsetY = (index - lines.length + 1) * lineHeight;
+    context.fillText(line, 0, offsetY);
+  });
   context.restore();
 };
 
@@ -278,8 +283,8 @@ const resetSettings = () => {
   elements.opacityRange.value = "100";
   elements.angleSelect.value = "0";
   elements.fontSizeRange.value = "24";
-  elements.positionXRange.value = "78";
-  elements.positionYRange.value = "12";
+  elements.positionXRange.value = "10";
+  elements.positionYRange.value = "90";
   updateLabels();
   schedulePreview();
 };

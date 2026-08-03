@@ -69,7 +69,8 @@
 
             <div class="field-group">
               <label for="text-content" data-i18n="textContent">贴字内容</label>
-              <input id="text-content" type="text" maxlength="40" value="审核通过" data-i18n-placeholder="textPlaceholder" placeholder="审核通过" />
+              <textarea id="text-content" maxlength="300" rows="3" data-i18n-placeholder="textPlaceholder" placeholder="审核通过">审核通过</textarea>
+              <span class="field-hint" data-i18n="textHint">支持多行，按 Enter 换行</span>
             </div>
 
             <div class="field-row">
@@ -120,16 +121,16 @@
               <div class="field-group range-field compact-range">
                 <div class="label-row">
                   <label for="position-x-range" data-i18n="positionX">横向位置</label>
-                  <output id="position-x-value">78%</output>
+                  <output id="position-x-value">10%</output>
                 </div>
-                <input id="position-x-range" type="range" min="0" max="100" value="78" />
+                <input id="position-x-range" type="range" min="0" max="100" value="10" />
               </div>
               <div class="field-group range-field compact-range">
                 <div class="label-row">
                   <label for="position-y-range" data-i18n="positionY">纵向位置</label>
-                  <output id="position-y-value">12%</output>
+                  <output id="position-y-value">90%</output>
                 </div>
-                <input id="position-y-range" type="range" min="0" max="100" value="12" />
+                <input id="position-y-range" type="range" min="0" max="100" value="90" />
               </div>
             </div>
 
